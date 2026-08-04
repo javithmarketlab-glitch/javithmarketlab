@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg" href="tab-logo.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout - JavithMarketLab</title>
+
+<!-- ✅ Cashfree JS SDK -->
+<script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,sans-serif;
+}
+
+body{
+  background:#0a0e3a;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:100vh;
+}
+
+.checkout-box{
+  background:#fff;
+  width:420px;
+  padding:35px;
+  border-radius:18px;
+  box-shadow:0 15px 40px rgba(0,0,0,.25);
+  text-align:center;
+}
+
+.logo{
+  font-size:32px;
+  margin-bottom:10px;
+}
+
+h1{
+  color:#2233ff;
+  margin-bottom:25px;
+}
+
+.info-box{
+  background:#f5f7ff;
+  border:1px solid #d9e0ff;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:15px;
+}
+
+.label{
+  color:#666;
+  font-size:14px;
+}
+
+.value{
+  color:#111;
+  font-size:18px;
+  font-weight:bold;
+  margin-top:5px;
+}
+
+.price{
+  color:#22aa44;
+  font-size:26px;
+  font-weight:bold;
+}
+
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#2233ff;
+  color:#fff;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:15px;
+  transition:.3s;
+}
+
+button:hover{
+  background:#1122dd;
+}
+
+button:disabled{
+  background:#aaa;
+  cursor:not-allowed;
+}
+
+.secure{
+  margin-top:15px;
+  color:#777;
+  font-size:13px;
+}
+
+.error-msg{
+  color:#e53935;
+  font-size:14px;
+  margin-top:10px;
+  min-height:20px;
+}
+
+@media screen and (max-width:768px){
+  body{ padding:15px; }
+  .checkout-box{
+    width:100%;
+    max-width:100%;
+    padding:25px 15px;
+    border-radius:20px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="checkout-box">
+
+  <div class="logo">🚀</div>
+  <h1>Checkout</h1>
+
+  <div class="info-box">
+    <div class="label">Selected Plan</div>
+    <div class="value" id="plan"></div>
+  </div>
+
+  <div class="info-box">
+    <div class="label">Amount</div>
+    <div class="price">₹<span id="price"></span></div>
+  </div>
+
+  <button id="payBtn" onclick="proceedPayment()">
+    Proceed Payment 💳
+  </button>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="secure">
+    🔒 Secure Payment Powered by Cashfree
+  </div>
+
+</div>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const selectedPlan  = params.get("plan");
+const selectedPrice = params.get("price");
+
+// email login-ல் localStorage-ல் save ஆகியிருக்கும்
+const userEmail = localStorage.getItem("email") || "customer@example.com";
+const userName  = localStorage.getItem("fullname") || "Customer";
+
+if (selectedPlan) {
+  localStorage.setItem("selectedPlan", selectedPlan);
+}
+
+document.getElementById("plan").innerText  = selectedPlan  || "No Plan Selected";
+document.getElementById("price").innerText = selectedPrice || "0";
+
+async function proceedPayment() {
+
+  const btn      = document.getElementById("payBtn");
+  const errorMsg = document.getElementById("errorMsg");
+
+  errorMsg.textContent = "";
+  btn.disabled  = true;
+  btn.innerText = "Processing...";
+
+  try {
+
+    console.log("Creating order...");
+
+    const response = await fetch("http://localhost:5000/create-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: Number(selectedPrice) || 1,
+        email:  userEmail,
+        name:   userName,
+        phone:  "9999999999"
+      })
+    });
+
+    const data = await response.json();
+
+    console.log("Server Response:", data);
+
+    if (!data.success) {
+      errorMsg.textContent = "Order Failed: " + (data.error?.message || data.error || "Unknown error");
+      btn.disabled  = false;
+      btn.innerText = "Proceed Payment 💳";
+      return;
+    }
+
+    // ✅ Cashfree SDK இல்லாம் இருந்தா error காட்டு
+    if (typeof Cashfree === "undefined") {
+      errorMsg.textContent = "Cashfree SDK not load. please Internet check.";
+      btn.disabled  = false;
+      btn.innerText = "Proceed Payment 💳";
+      return;
+    }
+
+    // ✅ SANDBOX test-க்கு "sandbox", production-க்கு "production"
+    const cashfree = Cashfree({ mode: "sandbox" });
+
+    await cashfree.checkout({
+      paymentSessionId: data.payment_session_id,
+      redirectTarget: "_self"
+    });
+
+  } catch (err) {
+    console.error("Payment Error:", err);
+    errorMsg.textContent = "Error: " + err.message;
+    btn.disabled  = false;
+    btn.innerText = "Proceed Payment 💳";
+  }
+}
+
+</script>
+
+</body>
+</html>

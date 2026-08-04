@@ -1,0 +1,4 @@
+*.mp4
+node_modules/
+.env
+node_modules_backup/

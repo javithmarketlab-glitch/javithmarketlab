@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg" href="tab-logo.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - JavithMarketLab</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #0a0e3a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .register-box {
+      background: white;
+      padding: 36px 30px 28px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 20px rgba(0,0,0,.3);
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #2233ff;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #111;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input:focus { outline: none; border-color: #2233ff; }
+
+    /* Password wrapper with eye icon */
+    .pw-wrap {
+      position: relative;
+      margin: 8px 0;
+    }
+    .pw-wrap input {
+      width: 100%;
+      padding: 12px 44px 12px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    .pw-wrap input:focus { outline: none; border-color: #2233ff; }
+    .pw-wrap .eye {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: #888;
+      user-select: none;
+    }
+
+    /* Password strength bar */
+    .strength-bar-wrap {
+      display: flex;
+      gap: 5px;
+      margin: 6px 0 2px;
+    }
+    .strength-bar-wrap .bar {
+      flex: 1;
+      height: 5px;
+      border-radius: 3px;
+      background: #e0e0e0;
+      transition: background 0.3s;
+    }
+    .strength-label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+      min-height: 16px;
+    }
+
+    /* Password rules checklist */
+    .pw-rules {
+      background: #f5f7ff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 6px 0 10px;
+      font-size: 13px;
+      color: #444;
+    }
+    .pw-rules p {
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #333;
+    }
+    .rule {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 3px 0;
+      color: #888;
+      transition: color 0.2s;
+    }
+    .rule.ok { color: #22aa44; }
+    .rule .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      flex-shrink: 0;
+      transition: background 0.2s;
+    }
+    .rule.ok .dot { background: #22aa44; color: white; }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      background: #2233ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 10px;
+      transition: background .2s;
+    }
+    button:hover { background: #1122dd; }
+    button:disabled { background: #aaa; cursor: not-allowed; }
+
+    .error-msg {
+      color: #e53935;
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    .switch-link {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 0.88rem;
+      color: #555;
+    }
+    .switch-link a {
+      color: #2233ff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .switch-link a:hover { text-decoration: underline; }
+
+    @media (max-width: 480px) {
+      body { padding: 15px; align-items: flex-start; padding-top: 30px; }
+      .register-box { padding: 28px 18px 22px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="register-box">
+  <div class="logo">JavithMarketLab 🚀</div>
+  <h2>Create Account</h2>
+
+  <input type="text" id="fullname" placeholder="Full Name" />
+  <input type="email" id="email" placeholder="Email" />
+
+  <!-- Password -->
+  <div class="pw-wrap">
+    <input type="password" id="password" placeholder="Create Password" oninput="checkStrength()" />
+    <span class="eye" onclick="togglePw('password', this)">👁</span>
+  </div>
+
+  <!-- Strength bar -->
+  <div class="strength-bar-wrap">
+    <div class="bar" id="bar1"></div>
+    <div class="bar" id="bar2"></div>
+    <div class="bar" id="bar3"></div>
+    <div class="bar" id="bar4"></div>
+  </div>
+  <div class="strength-label" id="strengthLabel"></div>
+
+  <!-- Rules checklist -->
+  <div class="pw-rules">
+    <p>Password must have:</p>
+    <div class="rule" id="r-len">
+      <span class="dot">✗</span> At least 8 characters
+    </div>
+    <div class="rule" id="r-upper">
+      <span class="dot">✗</span> One uppercase letter (A-Z)
+    </div>
+    <div class="rule" id="r-lower">
+      <span class="dot">✗</span> One lowercase letter (a-z)
+    </div>
+    <div class="rule" id="r-num">
+      <span class="dot">✗</span> One number (0-9)
+    </div>
+    <div class="rule" id="r-special">
+      <span class="dot">✗</span> One special character (!@#$%^&*)
+    </div>
+  </div>
+
+  <!-- Confirm Password -->
+  <div class="pw-wrap">
+    <input type="password" id="confirmPw" placeholder="Confirm Password" oninput="checkMatch()" />
+    <span class="eye" onclick="togglePw('confirmPw', this)">👁</span>
+  </div>
+  <div class="strength-label" id="matchLabel"></div>
+
+  <button id="regBtn" onclick="register()">Register</button>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="switch-link">
+    Already have an account? <a href="login.html">Login here</a>
+  </div>
+</div>
+
+<script>
+  function togglePw(id, icon) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type === "password" ? "text" : "password";
+    icon.textContent = inp.type === "password" ? "👁" : "🙈";
+  }
+
+  function setRule(id, passed) {
+    const el = document.getElementById(id);
+    const dot = el.querySelector(".dot");
+    if (passed) {
+      el.classList.add("ok");
+      dot.textContent = "✓";
+    } else {
+      el.classList.remove("ok");
+      dot.textContent = "✗";
+    }
+  }
+
+  function checkStrength() {
+    const pw = document.getElementById("password").value;
+
+    const hasLen     = pw.length >= 8;
+    const hasUpper   = /[A-Z]/.test(pw);
+    const hasLower   = /[a-z]/.test(pw);
+    const hasNum     = /[0-9]/.test(pw);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw);
+
+    setRule("r-len",     hasLen);
+    setRule("r-upper",   hasUpper);
+    setRule("r-lower",   hasLower);
+    setRule("r-num",     hasNum);
+    setRule("r-special", hasSpecial);
+
+    const score = [hasLen, hasUpper, hasLower, hasNum, hasSpecial].filter(Boolean).length;
+
+    const bars   = ["bar1","bar2","bar3","bar4"];
+    const colors = ["#e53935","#ff9800","#fbc02d","#22aa44"];
+    const labels = ["","Weak","Fair","Good","Strong"];
+
+    bars.forEach((b, i) => {
+      document.getElementById(b).style.background =
+        i < score ? colors[Math.min(score - 1, 3)] : "#e0e0e0";
+    });
+
+    const lbl = document.getElementById("strengthLabel");
+    if (!pw.length) {
+      lbl.textContent = "";
+      lbl.style.color = "";
+    } else {
+      lbl.textContent = labels[score] || "";
+      lbl.style.color = colors[Math.min(score - 1, 3)] || "#888";
+    }
+
+    checkMatch();
+  }
+
+  function checkMatch() {
+    const pw  = document.getElementById("password").value;
+    const cpw = document.getElementById("confirmPw").value;
+    const lbl = document.getElementById("matchLabel");
+    if (!cpw.length) { lbl.textContent = ""; return; }
+    if (pw === cpw) {
+      lbl.textContent = "Passwords match ✓";
+      lbl.style.color = "#22aa44";
+    } else {
+      lbl.textContent = "Passwords do not match";
+      lbl.style.color = "#e53935";
+    }
+  }
+
+  function isStrongPassword(pw) {
+    return pw.length >= 8 &&
+      /[A-Z]/.test(pw) &&
+      /[a-z]/.test(pw) &&
+      /[0-9]/.test(pw) &&
+      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw);
+  }
+
+  async function register() {
+    const fullname  = document.getElementById("fullname").value.trim();
+    const email     = document.getElementById("email").value.trim();
+    const password  = document.getElementById("password").value;
+    const confirmPw = document.getElementById("confirmPw").value;
+    const errorMsg  = document.getElementById("errorMsg");
+    const btn       = document.getElementById("regBtn");
+
+    errorMsg.textContent = "";
+
+    if (!fullname || !email || !password || !confirmPw) {
+      errorMsg.textContent = "Please fill in all fields.";
+      return;
+    }
+
+    if (!isStrongPassword(password)) {
+      errorMsg.textContent = "Please create a strong password meeting all requirements above.";
+      return;
+    }
+
+    if (password !== confirmPw) {
+      errorMsg.textContent = "Passwords do not match.";
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = "Registering...";
+
+    try {
+      const response = await fetch("http://localhost:5000/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fullname, email, password })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert("Account created! Please log in. ✅");
+        window.location.href = "login.html";
+      } else {
+        errorMsg.textContent = data.message || "Registration failed. Try again.";
+        btn.disabled = false;
+        btn.textContent = "Register";
+      }
+    } catch (err) {
+      errorMsg.textContent = "Server error. Please try again.";
+      btn.disabled = false;
+      btn.textContent = "Register";
+    }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") register();
+  });
+</script>
+
+</body>
+</html>

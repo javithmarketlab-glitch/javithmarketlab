@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" type="image/svg" href="tab-logo.svg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JavithMarketLab Dashboard</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body{
+      font-family:Arial,sans-serif;
+      background:#0a0e3a;
+      color:white;
+      text-align:center;
+      min-height:100vh;
+    }
+
+    .header{
+      background:#2233ff;
+      padding:16px 20px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+
+    .header h1{
+      margin:0;
+      font-size:1.2rem;
+      cursor:pointer;
+    }
+
+    .header h1:hover{ opacity:0.8; }
+
+    .btn-outline{
+      background:transparent;
+      border:2px solid rgba(255,255,255,0.5);
+      color:white;
+      padding:8px 18px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:14px;
+      font-weight:600;
+      white-space:nowrap;
+      transition:0.2s;
+    }
+
+    .btn-outline:hover{ background:rgba(255,255,255,0.12); }
+
+    .container{
+      padding:30px 16px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+    }
+
+    .card{
+      width:100%;
+      max-width:460px;
+      background:#11164f;
+      padding:30px 24px;
+      border-radius:16px;
+      box-shadow:0 0 24px rgba(0,0,0,.5);
+    }
+
+    .welcome-name{
+      color:#00ff88;
+      font-size:1.3rem;
+      font-weight:bold;
+      margin-bottom:6px;
+      word-break:break-word;
+    }
+
+    .sub-text{
+      color:rgba(255,255,255,.6);
+      font-size:0.9rem;
+      margin-top:4px;
+    }
+
+    .plan-label{
+      color:rgba(255,255,255,.55);
+      font-size:0.78rem;
+      margin-top:22px;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+
+    .status-badge{
+      display:inline-block;
+      margin-top:10px;
+      padding:10px 24px;
+      border-radius:30px;
+      font-size:0.95rem;
+      font-weight:700;
+    }
+
+    .status-badge.active{
+      background:rgba(0,255,136,0.15);
+      color:#00ff88;
+      border:2px solid #00ff88;
+    }
+
+    .status-badge.inactive{
+      background:rgba(239,68,68,0.15);
+      color:#ef4444;
+      border:2px solid #ef4444;
+    }
+
+    .status-hint{
+      font-size:0.8rem;
+      margin-top:8px;
+      color:rgba(255,255,255,0.4);
+    }
+
+    .btn-row{
+      margin-top:26px;
+    }
+
+    .btn-home{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:10px;
+      background:#2233ff;
+      color:white;
+      cursor:pointer;
+      font-size:15px;
+      font-weight:700;
+      transition:background 0.2s;
+    }
+
+    .btn-home:hover{ background:#1122dd; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1 onclick="window.location.href='Index.html'">JavithMarketLab 🚀</h1>
+  <button class="btn-outline" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+  <div class="card">
+
+    <div class="welcome-name" id="welcomeName">Loading...</div>
+    <div class="sub-text">You're logged in to JavithMarketLab</div>
+
+    <div class="plan-label">Subscription Status</div>
+    <div class="status-badge" id="statusBadge">Checking...</div>
+    <div class="status-hint" id="statusHint"></div>
+
+    <div class="btn-row">
+      <button class="btn-home" onclick="window.location.href='Index.html'">
+        🏠 Home Page
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const token = localStorage.getItem("token");
+const email = localStorage.getItem("email");
+
+if (!token || !email) {
+  window.location.href = "login.html";
+}
+
+async function loadUser() {
+  try {
+    const userRes = await fetch("http://localhost:5000/get-user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const userData = await userRes.json();
+
+    document.getElementById("welcomeName").textContent =
+      userData.success ? "Welcome, " + userData.user.fullname + " 👋" : "Welcome 👋";
+
+    const subRes = await fetch("http://localhost:5000/check-subscription", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const subData = await subRes.json();
+
+    const badge = document.getElementById("statusBadge");
+    const hint  = document.getElementById("statusHint");
+
+    if (subData.access) {
+      badge.textContent = "✅ Lifetime Plan Active";
+      badge.className   = "status-badge active";
+      hint.textContent  = "You have full access to all premium content";
+    } else {
+      badge.textContent = "❌ No Active Plan";
+      badge.className   = "status-badge inactive";
+      hint.textContent  = "Purchase a plan to access premium content";
+    }
+
+  } catch (err) {
+    console.log(err);
+    document.getElementById("welcomeName").textContent = "Welcome 👋";
+    document.getElementById("statusBadge").textContent = "Could not load status";
+    document.getElementById("statusBadge").className   = "status-badge inactive";
+  }
+}
+
+loadUser();
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "login.html";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - JavithMarketLab</title>
+  <link rel="icon" type="image/svg" href="tab-logo.svg">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #0a0e3a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-box {
+      background: white;
+      padding: 36px 30px 28px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 0 20px rgba(0,0,0,.3);
+    }
+
+    .logo {
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 900;
+      color: #2233ff;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #111;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+    }
+
+    input[type="email"],
+    input[type="text"] {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    input:focus { outline: none; border-color: #2233ff; }
+
+    .pw-wrap {
+      position: relative;
+      margin: 8px 0;
+    }
+    .pw-wrap input {
+      width: 100%;
+      padding: 12px 44px 12px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+    .pw-wrap input:focus { outline: none; border-color: #2233ff; }
+    .pw-wrap .eye {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      font-size: 1.1rem;
+      user-select: none;
+      color: #888;
+    }
+
+    button {
+      width: 100%;
+      padding: 13px;
+      background: #2233ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 700;
+      margin-top: 10px;
+      transition: background .2s;
+    }
+    button:hover { background: #1122dd; }
+
+    .google-btn {
+      background: #fff;
+      color: #333;
+      border: 1px solid #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .google-btn:hover { background: #f5f5f5; }
+
+    .error-msg {
+      color: #e53935;
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+    .success-msg {
+      color: #22a86b;
+      font-size: 0.85rem;
+      text-align: center;
+      margin-top: 8px;
+      min-height: 20px;
+    }
+
+    .switch-link {
+      text-align: center;
+      margin-top: 18px;
+      font-size: 0.88rem;
+      color: #555;
+    }
+    .switch-link a { color: #2233ff; font-weight: 700; text-decoration: none; }
+    .switch-link a:hover { text-decoration: underline; }
+
+    .forgot-link {
+      text-align: right;
+      margin-top: -4px;
+      margin-bottom: 4px;
+      font-size: 0.82rem;
+    }
+    .forgot-link a { color: #2233ff; font-weight: 600; text-decoration: none; cursor: pointer; }
+    .forgot-link a:hover { text-decoration: underline; }
+
+    .fp-section { display: none; }
+    .fp-section.active { display: block; }
+    .main-section { display: block; }
+    .main-section.hidden { display: none; }
+
+    .step-title { text-align: center; color: #111; font-size: 1.1rem; font-weight: 800; margin-bottom: 6px; }
+    .step-sub { text-align: center; color: #777; font-size: 0.82rem; margin-bottom: 16px; }
+    .back-link { text-align: center; margin-top: 14px; font-size: 0.85rem; }
+    .back-link a { color: #888; text-decoration: none; cursor: pointer; }
+    .back-link a:hover { color: #2233ff; }
+
+    .otp-inputs { display: flex; gap: 8px; justify-content: center; margin: 12px 0; }
+    .otp-inputs input {
+      width: 44px; height: 48px; text-align: center;
+      font-size: 1.3rem; font-weight: 700; padding: 0;
+      border-radius: 8px; border: 2px solid #ccc; margin: 0;
+    }
+    .otp-inputs input:focus { border-color: #2233ff; outline: none; }
+
+    .resend-row { text-align: center; font-size: 0.82rem; color: #888; margin-top: 8px; }
+    .resend-row a { color: #2233ff; font-weight: 600; cursor: pointer; text-decoration: none; }
+
+    /* Password strength bar */
+    .strength-bar-wrap {
+      display: flex;
+      gap: 5px;
+      margin: 6px 0 2px;
+    }
+    .strength-bar-wrap .bar {
+      flex: 1;
+      height: 5px;
+      border-radius: 3px;
+      background: #e0e0e0;
+      transition: background 0.3s;
+    }
+    .strength-label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 4px;
+      min-height: 16px;
+    }
+
+    /* Rules checklist */
+    .pw-rules {
+      background: #f5f7ff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      margin: 6px 0 10px;
+      font-size: 13px;
+      color: #444;
+    }
+    .pw-rules p { font-weight: 700; margin-bottom: 6px; color: #333; }
+    .rule { display: flex; align-items: center; gap: 7px; margin: 3px 0; color: #888; transition: color 0.2s; }
+    .rule.ok { color: #22aa44; }
+    .rule .dot {
+      width: 16px; height: 16px; border-radius: 50%; background: #ddd;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; flex-shrink: 0; transition: background 0.2s;
+    }
+    .rule.ok .dot { background: #22aa44; color: white; }
+
+    @media (max-width: 480px) {
+      body { padding: 15px; align-items: flex-start; padding-top: 30px; }
+      .login-box { padding: 28px 18px 22px; }
+      .otp-inputs input { width: 38px; height: 44px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+
+  <!-- STEP 1: Login -->
+  <div class="main-section" id="loginSection">
+    <div class="logo">JavithMarketLab 🚀</div>
+    <h2>Welcome Back</h2>
+
+    <input type="email" id="email" placeholder="Email" />
+
+    <div class="pw-wrap">
+      <input type="password" id="password" placeholder="Password" />
+      <span class="eye" onclick="togglePw('password', this)">👁</span>
+    </div>
+
+    <div class="forgot-link">
+      <a onclick="showStep('fp-email')">Forgot Password?</a>
+    </div>
+
+    <button onclick="login()">Login</button>
+
+    <button type="button" onclick="googleLogin()" class="google-btn">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+      Continue with Google
+    </button>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="switch-link">
+      Don't have an account? <a href="Register.html">Register here</a>
+    </div>
+  </div>
+
+  <!-- STEP 2: Enter Email -->
+  <div class="fp-section" id="fp-email">
+    <div class="logo">JavithMarketLab 🚀</div>
+    <div class="step-title">Forgot Password?</div>
+    <div class="step-sub">Enter your registered email — we'll send an OTP</div>
+
+    <input type="email" id="fpEmail" placeholder="Your Email" />
+
+    <button onclick="sendOtp()">Send OTP</button>
+    <div class="error-msg" id="fpEmailErr"></div>
+    <div class="success-msg" id="fpEmailOk"></div>
+
+    <div class="back-link"><a onclick="showStep('login')">← Back to Login</a></div>
+  </div>
+
+  <!-- STEP 3: Enter OTP -->
+  <div class="fp-section" id="fp-otp">
+    <div class="logo">JavithMarketLab 🚀</div>
+    <div class="step-title">Enter OTP</div>
+    <div class="step-sub">6-digit code sent to <strong id="otpEmailLabel"></strong></div>
+
+    <div class="otp-inputs">
+      <input type="text" maxlength="1" class="otp-digit" id="o1" oninput="otpNext(this,'o2')" />
+      <input type="text" maxlength="1" class="otp-digit" id="o2" oninput="otpNext(this,'o3')" />
+      <input type="text" maxlength="1" class="otp-digit" id="o3" oninput="otpNext(this,'o4')" />
+      <input type="text" maxlength="1" class="otp-digit" id="o4" oninput="otpNext(this,'o5')" />
+      <input type="text" maxlength="1" class="otp-digit" id="o5" oninput="otpNext(this,'o6')" />
+      <input type="text" maxlength="1" class="otp-digit" id="o6" oninput="otpNext(this,null)" />
+    </div>
+
+    <div class="resend-row">Didn't receive? <a onclick="sendOtp(true)">Resend OTP</a></div>
+
+    <button onclick="verifyOtp()">Verify OTP</button>
+    <div class="error-msg" id="fpOtpErr"></div>
+    <div class="success-msg" id="fpOtpOk"></div>
+
+    <div class="back-link"><a onclick="showStep('fp-email')">← Change Email</a></div>
+  </div>
+
+  <!-- STEP 4: New Password -->
+  <div class="fp-section" id="fp-newpw">
+    <div class="logo">JavithMarketLab 🚀</div>
+    <div class="step-title">Set New Password</div>
+    <div class="step-sub">Create a strong password</div>
+
+    <div class="pw-wrap">
+      <input type="password" id="newPw" placeholder="New Password" oninput="checkNewStrength()" />
+      <span class="eye" onclick="togglePw('newPw', this)">👁</span>
+    </div>
+
+    <!-- Strength bar -->
+    <div class="strength-bar-wrap">
+      <div class="bar" id="nb1"></div>
+      <div class="bar" id="nb2"></div>
+      <div class="bar" id="nb3"></div>
+      <div class="bar" id="nb4"></div>
+    </div>
+    <div class="strength-label" id="newStrengthLabel"></div>
+
+    <!-- Rules checklist -->
+    <div class="pw-rules">
+      <p>Password must have:</p>
+      <div class="rule" id="nr-len"><span class="dot">✗</span> At least 8 characters</div>
+      <div class="rule" id="nr-upper"><span class="dot">✗</span> One uppercase letter (A-Z)</div>
+      <div class="rule" id="nr-lower"><span class="dot">✗</span> One lowercase letter (a-z)</div>
+      <div class="rule" id="nr-num"><span class="dot">✗</span> One number (0-9)</div>
+      <div class="rule" id="nr-special"><span class="dot">✗</span> One special character (!@#$%^&*)</div>
+    </div>
+
+    <div class="pw-wrap">
+      <input type="password" id="confirmPw" placeholder="Confirm Password" oninput="checkNewMatch()" />
+      <span class="eye" onclick="togglePw('confirmPw', this)">👁</span>
+    </div>
+    <div class="strength-label" id="newMatchLabel"></div>
+
+    <button onclick="resetPassword()">Reset Password</button>
+    <div class="error-msg" id="fpPwErr"></div>
+    <div class="success-msg" id="fpPwOk"></div>
+  </div>
+
+</div>
+
+<script>
+  const API = "http://localhost:5000";
+  let fpEmail = "";
+  let otpToken = "";
+
+  function showStep(step) {
+    document.getElementById("loginSection").classList.remove("hidden");
+    ["fp-email","fp-otp","fp-newpw"].forEach(id => {
+      document.getElementById(id).classList.remove("active");
+    });
+    if (step !== "login") {
+      document.getElementById("loginSection").classList.add("hidden");
+      document.getElementById(step).classList.add("active");
+    }
+  }
+
+  function togglePw(id, icon) {
+    const inp = document.getElementById(id);
+    inp.type = inp.type === "password" ? "text" : "password";
+    icon.textContent = inp.type === "password" ? "👁" : "🙈";
+  }
+
+  async function login() {
+    const email    = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const errorMsg = document.getElementById("errorMsg");
+    errorMsg.textContent = "";
+
+    if (!email || !password) {
+      errorMsg.textContent = "Please fill in all fields.";
+      return;
+    }
+
+    try {
+      const response = await fetch(API + "/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("userName", data.fullname);
+        localStorage.setItem("fullname", data.fullname);
+        localStorage.setItem("email", email);
+        window.location.href = "Dashboard.html";
+      } else {
+        errorMsg.textContent = data.message;
+      }
+    } catch (err) {
+      errorMsg.textContent = "Server Error — Try again";
+    }
+  }
+
+  async function sendOtp(isResend = false) {
+    const emailInput = document.getElementById("fpEmail");
+    const err = document.getElementById("fpEmailErr");
+    const ok  = document.getElementById("fpEmailOk");
+    err.textContent = ""; ok.textContent = "";
+
+    fpEmail = emailInput ? emailInput.value.trim() : fpEmail;
+    if (!fpEmail || !/\S+@\S+\.\S+/.test(fpEmail)) {
+      if (err) err.textContent = "Enter a valid email address.";
+      return;
+    }
+
+    try {
+      const res  = await fetch(API + "/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: fpEmail })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById("otpEmailLabel").textContent = fpEmail;
+        if (isResend) {
+          document.getElementById("fpOtpOk").textContent = "OTP resent! ✅";
+          document.querySelectorAll(".otp-digit").forEach(i => i.value = "");
+          document.getElementById("o1").focus();
+        } else {
+          if (ok) ok.textContent = "OTP sent! Check your email ✅";
+          setTimeout(() => showStep("fp-otp"), 800);
+        }
+      } else {
+        if (err) err.textContent = data.message || "Email not found. Try again.";
+      }
+    } catch {
+      if (err) err.textContent = "Server error. Please try again.";
+    }
+  }
+
+  function otpNext(el, nextId) {
+    el.value = el.value.replace(/[^0-9]/g, "");
+    if (el.value && nextId) document.getElementById(nextId).focus();
+  }
+
+  async function verifyOtp() {
+    const digits = [...document.querySelectorAll(".otp-digit")].map(i => i.value).join("");
+    const err = document.getElementById("fpOtpErr");
+    const ok  = document.getElementById("fpOtpOk");
+    err.textContent = ""; ok.textContent = "";
+
+    if (digits.length < 6) { err.textContent = "Enter all 6 digits."; return; }
+
+    try {
+      const res  = await fetch(API + "/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: fpEmail, otp: digits })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        otpToken = data.resetToken || "";
+        ok.textContent = "OTP verified! ✅";
+        setTimeout(() => showStep("fp-newpw"), 700);
+      } else {
+        err.textContent = data.message || "Invalid OTP. Try again.";
+      }
+    } catch { err.textContent = "Server error. Please try again."; }
+  }
+
+  /* ── Strong password helpers for Reset step ── */
+  function setNewRule(id, passed) {
+    const el = document.getElementById(id);
+    const dot = el.querySelector(".dot");
+    if (passed) { el.classList.add("ok"); dot.textContent = "✓"; }
+    else        { el.classList.remove("ok"); dot.textContent = "✗"; }
+  }
+
+  function checkNewStrength() {
+    const pw = document.getElementById("newPw").value;
+
+    const hasLen     = pw.length >= 8;
+    const hasUpper   = /[A-Z]/.test(pw);
+    const hasLower   = /[a-z]/.test(pw);
+    const hasNum     = /[0-9]/.test(pw);
+    const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw);
+
+    setNewRule("nr-len",     hasLen);
+    setNewRule("nr-upper",   hasUpper);
+    setNewRule("nr-lower",   hasLower);
+    setNewRule("nr-num",     hasNum);
+    setNewRule("nr-special", hasSpecial);
+
+    const score  = [hasLen, hasUpper, hasLower, hasNum, hasSpecial].filter(Boolean).length;
+    const colors = ["#e53935","#ff9800","#fbc02d","#22aa44"];
+    const labels = ["","Weak","Fair","Good","Strong"];
+
+    ["nb1","nb2","nb3","nb4"].forEach((b, i) => {
+      document.getElementById(b).style.background =
+        i < score ? colors[Math.min(score - 1, 3)] : "#e0e0e0";
+    });
+
+    const lbl = document.getElementById("newStrengthLabel");
+    lbl.textContent = pw.length ? (labels[score] || "") : "";
+    lbl.style.color = pw.length ? (colors[Math.min(score - 1, 3)] || "#888") : "";
+
+    checkNewMatch();
+  }
+
+  function checkNewMatch() {
+    const pw  = document.getElementById("newPw").value;
+    const cpw = document.getElementById("confirmPw").value;
+    const lbl = document.getElementById("newMatchLabel");
+    if (!cpw.length) { lbl.textContent = ""; return; }
+    if (pw === cpw) {
+      lbl.textContent = "Passwords match ✓";
+      lbl.style.color = "#22aa44";
+    } else {
+      lbl.textContent = "Passwords do not match";
+      lbl.style.color = "#e53935";
+    }
+  }
+
+  function isStrongPassword(pw) {
+    return pw.length >= 8 &&
+      /[A-Z]/.test(pw) &&
+      /[a-z]/.test(pw) &&
+      /[0-9]/.test(pw) &&
+      /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pw);
+  }
+
+  async function resetPassword() {
+    const newPw     = document.getElementById("newPw").value;
+    const confirmPw = document.getElementById("confirmPw").value;
+    const err = document.getElementById("fpPwErr");
+    const ok  = document.getElementById("fpPwOk");
+    err.textContent = ""; ok.textContent = "";
+
+    if (!newPw || !confirmPw) { err.textContent = "Fill in both fields."; return; }
+    if (!isStrongPassword(newPw)) {
+      err.textContent = "Please create a strong password meeting all requirements.";
+      return;
+    }
+    if (newPw !== confirmPw) { err.textContent = "Passwords do not match."; return; }
+
+    try {
+      const res  = await fetch(API + "/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: fpEmail, newPassword: newPw, resetToken: otpToken })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        ok.textContent = "Password reset successful! Redirecting... ✅";
+        setTimeout(() => showStep("login"), 1800);
+      } else {
+        err.textContent = data.message || "Reset failed. Try again.";
+      }
+    } catch { err.textContent = "Server error. Please try again."; }
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const active = document.querySelector(".fp-section.active");
+    if (!active) { login(); return; }
+    if (active.id === "fp-email")  sendOtp();
+    if (active.id === "fp-otp")    verifyOtp();
+    if (active.id === "fp-newpw")  resetPassword();
+  });
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCcFAR72iUFAaIddzd09X0kZN2Xh71OAtk",
+    authDomain: "javithmarketlab-9f824.firebaseapp.com",
+    projectId: "javithmarketlab-9f824",
+    storageBucket: "javithmarketlab-9f824.firebasestorage.app",
+    messagingSenderId: "192716245153",
+    appId: "1:192716245153:web:e4c977f9e9e4f2c146c8e0",
+    measurementId: "G-NW5C8JXN5D"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+
+  window.googleLogin = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      localStorage.setItem("email", user.email);
+      localStorage.setItem("userName", user.displayName);
+      localStorage.setItem("fullname", user.displayName);
+      localStorage.setItem("token", "google-login");
+      window.location.href = "Dashboard.html";
+    } catch(err) {
+      alert(err.message);
+    }
+  };
+</script>
+
+</body>
+</html>

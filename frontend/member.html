@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="icon" type="image/svg" href="tab-logo.svg">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Javith Market Lab - Members Area</title>
+<style>
+*{ margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',sans-serif; }
+
+body{
+  background:linear-gradient(135deg,#0a0e3a,#11164f);
+  color:white;
+  min-height:100vh;
+}
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:20px 8%;
+  background:#2233ff;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+}
+
+.logo{
+  font-size:26px;
+  font-weight:bold;
+  color:#ffffff;
+}
+
+.logout-btn{
+  border:2px solid rgba(255,255,255,0.5);
+  padding:10px 22px;
+  border-radius:10px;
+  background:transparent;
+  color:white;
+  cursor:pointer;
+  font-weight:bold;
+  transition:0.2s;
+}
+
+.logout-btn:hover{
+  background:rgba(255,255,255,0.15);
+}
+
+.hero{
+  text-align:center;
+  padding:50px 20px;
+}
+
+.hero h1{
+  font-size:40px;
+  margin-bottom:10px;
+  color:#ffffff;
+}
+
+.hero p{
+  color:rgba(255,255,255,0.7);
+}
+
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+
+.card{
+  background:rgba(34,51,255,0.12);
+  border:1px solid rgba(34,51,255,0.4);
+  border-radius:20px;
+  padding:25px;
+  margin-bottom:30px;
+  backdrop-filter:blur(10px);
+}
+
+.card h2{
+  margin-bottom:20px;
+  color:#2233ff;
+}
+
+video{
+  width:100%;
+  border-radius:15px;
+}
+
+.dl-btn{
+  display:inline-block;
+  margin-top:15px;
+  padding:14px 25px;
+  background:#2233ff;
+  color:white;
+  text-decoration:none;
+  border-radius:10px;
+  font-weight:bold;
+  transition:0.2s;
+}
+
+.dl-btn:hover{
+  background:#1122dd;
+  transform:translateY(-2px);
+}
+
+footer{
+  text-align:center;
+  padding:25px;
+  margin-top:40px;
+  color:rgba(255,255,255,0.4);
+  border-top:1px solid rgba(34,51,255,0.2);
+}
+
+@media(max-width:768px){
+  header{ flex-direction:column; gap:15px; }
+  .hero h1{ font-size:28px; }
+  .logout-btn{ width:100%; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🚀 Javith Market Lab</div>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</header>
+
+<section class="hero">
+  <h1>Lifetime Members Area</h1>
+  <p>Access your premium course videos.</p>
+</section>
+
+<div class="container">
+
+  <div class="card">
+    <h2>🎥 Premium Course Video 1</h2>
+    <video controls>
+      <source src="My course.mp4" type="video/mp4">
+    </video>
+    <p style="color:rgba(255,255,255,0.7); margin-top:10px;">Download this video to watch offline.</p>
+    <a href="My course.mp4" download class="dl-btn">Download Video 1</a>
+  </div>
+
+  <div class="card">
+    <h2>🎥 Premium Course Video 2</h2>
+    <video controls>
+      <source src="course-video-2.mp4" type="video/mp4">
+    </video>
+    <p style="color:rgba(255,255,255,0.7); margin-top:10px;">Download this video to watch offline.</p>
+    <a href="course-video-2.mp4" download class="dl-btn">Download Video 2</a>
+  </div>
+
+</div>
+
+<footer>© 2026 Javith Market Lab. All Rights Reserved.</footer>
+
+<script>
+const BACKEND = "http://localhost:5000";
+
+async function checkAccess() {
+  const email = localStorage.getItem("email");
+
+  if (!email) {
+    window.location.replace("login.html");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${BACKEND}/check-subscription`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    const data = await response.json();
+
+    if (!data.access) {
+      alert("Please purchase Lifetime Access.");
+      window.location.replace("Index.html");
+      return;
+    }
+
+  } catch (err) {
+    console.log(err);
+    window.location.replace("login.html");
+  }
+}
+
+checkAccess();
+
+function logout() {
+  localStorage.clear();
+  window.location.replace("Index.html");
+}
+</script>
+
+</body>
+</html>

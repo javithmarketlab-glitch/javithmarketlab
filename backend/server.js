@@ -338,6 +338,6 @@ app.post("/check-subscription", (req, res) => {
 
 // ── START SERVER ──────────────────────────────────
 app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000 ✅");
+  console.log("Server running on https://javithmarketlab.onrender.com ✅");
   console.log("Make sure success.html is in the SAME folder as server.js");
 });

@@ -168,7 +168,7 @@ if (!token || !email) {
 
 async function loadUser() {
   try {
-    const userRes = await fetch("http://localhost:5000/get-user", {
+    const userRes = await fetch("https://javithmarketlab.onrender.com/get-user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })
@@ -178,7 +178,7 @@ async function loadUser() {
     document.getElementById("welcomeName").textContent =
       userData.success ? "Welcome, " + userData.user.fullname + " 👋" : "Welcome 👋";
 
-    const subRes = await fetch("http://localhost:5000/check-subscription", {
+    const subRes = await fetch("https://javithmarketlab.onrender.com/check-subscription", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email })

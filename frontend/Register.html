@@ -347,7 +347,7 @@
     btn.textContent = "Registering...";
 
     try {
-      const response = await fetch("http://localhost:5000/register", {
+      const response = await fetch("https://javithmarketlab.onrender.com/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ fullname, email, password })

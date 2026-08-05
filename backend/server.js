@@ -4,24 +4,24 @@ const { Cashfree, CFEnvironment } = require("cashfree-pg");
 
 Cashfree.XClientId     = process.env.CASHFREE_APP_ID;
 Cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY;
-Cashfree.XEnvironment  = CFEnvironment.SANDBOX; // PRODUCTION-க்கு மாத்தணும்னா: CFEnvironment.PRODUCTION
+Cashfree.XEnvironment  = CFEnvironment.PRODUCTION; // ✅ PRODUCTION
 Cashfree.XApiVersion   = "2023-08-01";
 
 console.log("SERVER LOADED 🚀");
 console.log("CASHFREE APP ID:", process.env.CASHFREE_APP_ID);
 
-const crypto     = require("crypto");
-const nodemailer = require("nodemailer");
-const express    = require("express");
-const cors       = require("cors");
-const bcrypt     = require("bcryptjs");
-const jwt        = require("jsonwebtoken");
-const db         = require("./db");
-const path       = require("path");
+const crypto      = require("crypto");
+const nodemailer  = require("nodemailer");
+const express     = require("express");
+const cors        = require("cors");
+const bcrypt      = require("bcryptjs");
+const jwt         = require("jsonwebtoken");
+const db          = require("./db");
+const path        = require("path");
 
 const app = express();
 
-const otpStore   = {};
+const otpStore    = {};
 const resetTokens = {};
 
 const transporter = nodemailer.createTransport({
@@ -35,12 +35,11 @@ const transporter = nodemailer.createTransport({
 app.use(cors());
 app.use(express.json());
 
-// ── STATIC FILES — frontend folder serve பண்ணு ──
-// backend/ folder-ல் server.js இருக்கு, frontend/ folder-ல் HTML files இருக்கு
+// ── STATIC FILES ──────────────────────────────────
 const FRONTEND = path.join(__dirname, "../frontend");
 app.use(express.static(FRONTEND));
 
-// ── EXPLICIT ROUTE FOR success.html ──────────────────
+// ── EXPLICIT ROUTE FOR success.html ──────────────
 app.get("/success.html", (req, res) => {
   res.sendFile(path.join(FRONTEND, "success.html"));
 });
@@ -227,9 +226,8 @@ app.post("/create-order", async (req, res) => {
       },
 
       order_meta: {
-        // ✅ SUCCESS URL — Cashfree payment ஆனதும் இங்கே redirect ஆகும்
-        // IMPORTANT: success.html உங்கள் server folder ல் இருக்கணும்
-        return_url: "http://localhost:5000/success.html?order_id={order_id}"
+        // ✅ PRODUCTION URL
+        return_url: "https://javithmarketlab.online/success.html?order_id={order_id}"
       }
     };
 
@@ -252,8 +250,7 @@ app.post("/create-order", async (req, res) => {
   }
 });
 
-// ── VERIFY ORDER STATUS (success.html call பண்ணும்) ──
-// Cashfree API-ல் order status check பண்ணி PAID confirm செய்யும்
+// ── VERIFY ORDER STATUS ───────────────────────────
 app.get("/verify-order/:orderId", async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -267,7 +264,7 @@ app.get("/verify-order/:orderId", async (req, res) => {
 
     res.json({
       success: true,
-      status:  order.order_status, // "PAID", "ACTIVE", "EXPIRED", "CANCELLED"
+      status:  order.order_status,
       order
     });
 

@@ -10,29 +10,58 @@ Cashfree.XApiVersion   = "2023-08-01";
 console.log("SERVER LOADED 🚀");
 console.log("CASHFREE APP ID:", process.env.CASHFREE_APP_ID);
 
-const crypto      = require("crypto");
-const nodemailer  = require("nodemailer");
-const express     = require("express");
-const cors        = require("cors");
-const bcrypt      = require("bcryptjs");
-const jwt         = require("jsonwebtoken");
-const db          = require("./db");
-const path        = require("path");
+const crypto   = require("crypto");
+const express  = require("express");
+const cors     = require("cors");
+const bcrypt   = require("bcryptjs");
+const jwt      = require("jsonwebtoken");
+const db       = require("./db");
+const path     = require("path");
+const https    = require("https");
 
 const app = express();
 
 const otpStore    = {};
 const resetTokens = {};
 
-const transporter = nodemailer.createTransport({
-  host: "smtp-relay.brevo.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+// Send email via Brevo API (no SMTP, no port blocking)
+async function sendEmail(to, subject, htmlContent) {
+  const data = JSON.stringify({
+    sender: { name: "JavithMarketLab", email: process.env.BREVO_SENDER_EMAIL },
+    to: [{ email: to }],
+    subject: subject,
+    htmlContent: htmlContent
+  });
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: "api.brevo.com",
+      path: "/v3/smtp/email",
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "api-key": process.env.BREVO_API_KEY,
+        "Content-Length": Buffer.byteLength(data)
+      }
+    };
+
+    const req = https.request(options, (res) => {
+      let body = "";
+      res.on("data", (chunk) => { body += chunk; });
+      res.on("end", () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(body);
+        } else {
+          reject(new Error("Brevo API error: " + body));
+        }
+      });
+    });
+
+    req.on("error", reject);
+    req.write(data);
+    req.end();
+  });
+}
 
 app.use(cors());
 app.use(express.json());
@@ -58,9 +87,8 @@ app.post("/register", async (req, res) => {
     db.query(
       "INSERT INTO users (fullname, email, password) VALUES (?, ?, ?)",
       [fullname, email, hashedPassword],
-      (err, result) => {
+      (err) => {
         if (err) {
-          console.log("REGISTER ERROR:", err);
           if (err.code === "ER_DUP_ENTRY") {
             return res.status(400).json({ success: false, message: "Email already registered" });
           }
@@ -70,7 +98,6 @@ app.post("/register", async (req, res) => {
       }
     );
   } catch (err) {
-    console.log("REGISTER CATCH:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -80,56 +107,36 @@ app.post("/login", (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ success: false, message: "All fields required" });
   }
-  db.query(
-    "SELECT * FROM users WHERE email=?",
-    [email],
-    async (err, result) => {
-      if (err) {
-        console.log("LOGIN ERROR:", err);
-        return res.status(500).json({ success: false, message: err.message });
-      }
-      if (result.length === 0) {
-        return res.status(400).json({ success: false, message: "No account found with this email" });
-      }
-      const user          = result[0];
-      const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) {
-        return res.status(400).json({ success: false, message: "Incorrect password" });
-      }
-      const token = jwt.sign(
-        { id: user.id },
-        process.env.JWT_SECRET || "javithmarketlab_secret",
-        { expiresIn: "7d" }
-      );
-      res.json({ success: true, token, fullname: user.fullname });
-    }
-  );
+  db.query("SELECT * FROM users WHERE email=?", [email], async (err, result) => {
+    if (err) return res.status(500).json({ success: false, message: err.message });
+    if (result.length === 0) return res.status(400).json({ success: false, message: "No account found with this email" });
+    const user = result[0];
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) return res.status(400).json({ success: false, message: "Incorrect password" });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET || "javithmarketlab_secret", { expiresIn: "7d" });
+    res.json({ success: true, token, fullname: user.fullname });
+  });
 });
 
 app.post("/send-otp", async (req, res) => {
   const { email } = req.body;
-  if (!email) {
-    return res.json({ success: false, message: "Email is required" });
-  }
+  if (!email) return res.json({ success: false, message: "Email is required" });
   if (otpStore[email] && Date.now() < otpStore[email].expires) {
     return res.json({ success: false, message: "OTP already sent. Please wait 5 minutes." });
   }
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   otpStore[email] = { otp, expires: Date.now() + 5 * 60 * 1000 };
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: "Password Reset OTP",
-      html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2>Password Reset OTP</h2>
-          <p>Your OTP is:</p>
-          <h1>${otp}</h1>
-          <p>This OTP expires in 5 minutes.</p>
-        </div>
-      `
-    });
+    await sendEmail(
+      email,
+      "Password Reset OTP",
+      `<div style="font-family: Arial, sans-serif;">
+        <h2>Password Reset OTP</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP expires in 5 minutes.</p>
+      </div>`
+    );
     console.log("OTP Mail Sent ✅");
     return res.json({ success: true, message: "OTP sent successfully" });
   } catch (error) {
@@ -164,15 +171,11 @@ app.post("/reset-password", async (req, res) => {
   if (tokenData.token !== resetToken) return res.json({ success: false, message: "Invalid reset token" });
   try {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    db.query(
-      "UPDATE users SET password=? WHERE email=?",
-      [hashedPassword, email],
-      (err) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-        delete resetTokens[email];
-        res.json({ success: true, message: "Password updated successfully" });
-      }
-    );
+    db.query("UPDATE users SET password=? WHERE email=?", [hashedPassword, email], (err) => {
+      if (err) return res.status(500).json({ success: false, message: err.message });
+      delete resetTokens[email];
+      res.json({ success: true, message: "Password updated successfully" });
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
@@ -183,12 +186,12 @@ app.post("/create-order", async (req, res) => {
     const { amount, email, name, phone } = req.body;
     console.log("Creating order for amount:", amount);
     const request = {
-      order_amount:   Number(amount),
+      order_amount: Number(amount),
       order_currency: "INR",
-      order_id:       "ORDER_" + Date.now(),
+      order_id: "ORDER_" + Date.now(),
       customer_details: {
-        customer_id:    "CUS_" + Date.now(),
-        customer_name:  name  || "Customer",
+        customer_id: "CUS_" + Date.now(),
+        customer_name: name || "Customer",
         customer_email: email || "customer@example.com",
         customer_phone: phone || "9999999999"
       },
@@ -198,11 +201,7 @@ app.post("/create-order", async (req, res) => {
     };
     const response = await Cashfree.PGCreateOrder("2023-08-01", request);
     console.log("Order Created ✅:", response.data.order_id);
-    res.json({
-      success:            true,
-      payment_session_id: response.data.payment_session_id,
-      order_id:           response.data.order_id
-    });
+    res.json({ success: true, payment_session_id: response.data.payment_session_id, order_id: response.data.order_id });
   } catch (err) {
     console.log("CASHFREE ERROR:", err.response?.data || err.message);
     res.status(500).json({ success: false, error: err.response?.data || err.message });
@@ -212,69 +211,49 @@ app.post("/create-order", async (req, res) => {
 app.get("/verify-order/:orderId", async (req, res) => {
   try {
     const { orderId } = req.params;
-    console.log("Verifying order:", orderId);
     const response = await Cashfree.PGFetchOrder("2023-08-01", orderId);
-    const order    = response.data;
-    console.log("Order Status from Cashfree:", order.order_status);
+    const order = response.data;
+    console.log("Order Status:", order.order_status);
     res.json({ success: true, status: order.order_status, order });
   } catch (err) {
-    console.log("VERIFY ORDER ERROR:", err.response?.data || err.message);
     res.status(500).json({ success: false, status: "ERROR", error: err.response?.data || err.message });
   }
 });
 
 app.post("/get-user", (req, res) => {
   const { email } = req.body;
-  db.query(
-    "SELECT fullname, email, plan FROM users WHERE email=?",
-    [email],
-    (err, result) => {
-      if (err) return res.status(500).json({ success: false, message: err.message });
-      if (result.length === 0) return res.json({ success: false, message: "Email not found" });
-      return res.json({ success: true, user: result[0] });
-    }
-  );
+  db.query("SELECT fullname, email, plan FROM users WHERE email=?", [email], (err, result) => {
+    if (err) return res.status(500).json({ success: false, message: err.message });
+    if (result.length === 0) return res.json({ success: false, message: "Email not found" });
+    return res.json({ success: true, user: result[0] });
+  });
 });
 
 app.post("/update-plan", (req, res) => {
   const { email, plan } = req.body;
-  if (!email || !plan) {
-    return res.status(400).json({ success: false, message: "Email and plan required" });
-  }
-  db.query(
-    "UPDATE users SET plan=? WHERE email=?",
-    [plan, email],
-    (err) => {
-      if (err) {
-        console.log("UPDATE PLAN ERROR:", err);
-        return res.status(500).json({ success: false, message: err.message });
+  if (!email || !plan) return res.status(400).json({ success: false, message: "Email and plan required" });
+  db.query("UPDATE users SET plan=? WHERE email=?", [plan, email], (err) => {
+    if (err) return res.status(500).json({ success: false, message: err.message });
+    db.query(
+      "INSERT INTO subscriptions (email, plan_name, status) VALUES (?, ?, 'ACTIVE') ON DUPLICATE KEY UPDATE plan_name=?, status='ACTIVE'",
+      [email, plan, plan],
+      (err2) => {
+        if (err2) console.log("SUBSCRIPTION INSERT ERROR:", err2);
+        res.json({ success: true, message: "Plan Activated ✅" });
       }
-      db.query(
-        "INSERT INTO subscriptions (email, plan_name, status) VALUES (?, ?, 'ACTIVE') ON DUPLICATE KEY UPDATE plan_name=?, status='ACTIVE'",
-        [email, plan, plan],
-        (err2) => {
-          if (err2) console.log("SUBSCRIPTION INSERT ERROR:", err2);
-          res.json({ success: true, message: "Plan Activated ✅" });
-        }
-      );
-    }
-  );
+    );
+  });
 });
 
 app.post("/check-subscription", (req, res) => {
   const { email } = req.body;
-  db.query(
-    "SELECT id FROM subscriptions WHERE email=? AND status='ACTIVE'",
-    [email],
-    (err, result) => {
-      if (err) return res.json({ access: false });
-      return res.json({ access: result.length > 0 });
-    }
-  );
+  db.query("SELECT id FROM subscriptions WHERE email=? AND status='ACTIVE'", [email], (err, result) => {
+    if (err) return res.json({ access: false });
+    return res.json({ access: result.length > 0 });
+  });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log("Server running on https://javithmarketlab.onrender.com ✅");
-  console.log("Make sure success.html is in the SAME folder as server.js");
 });

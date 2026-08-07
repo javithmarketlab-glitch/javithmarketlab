@@ -25,7 +25,9 @@ const otpStore    = {};
 const resetTokens = {};
 
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS
@@ -337,7 +339,8 @@ app.post("/check-subscription", (req, res) => {
 });
 
 // ── START SERVER ──────────────────────────────────
-app.listen(5000, () => {
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
   console.log("Server running on https://javithmarketlab.onrender.com ✅");
   console.log("Make sure success.html is in the SAME folder as server.js");
 });

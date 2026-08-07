@@ -207,7 +207,7 @@ async function proceedPayment() {
     }
 
     // ✅ SANDBOX test-க்கு "sandbox", production-க்கு "production"
-    const cashfree = Cashfree({ mode: "sandbox" });
+    const cashfree = Cashfree({ mode: "production" });
 
     await cashfree.checkout({
       paymentSessionId: data.payment_session_id,

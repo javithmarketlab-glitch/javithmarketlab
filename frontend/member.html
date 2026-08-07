@@ -79,26 +79,21 @@ header{
   color:#2233ff;
 }
 
-video{
+.video-wrapper{
+  position:relative;
   width:100%;
+  padding-top:56.25%;
   border-radius:15px;
+  overflow:hidden;
 }
 
-.dl-btn{
-  display:inline-block;
-  margin-top:15px;
-  padding:14px 25px;
-  background:#2233ff;
-  color:white;
-  text-decoration:none;
-  border-radius:10px;
-  font-weight:bold;
-  transition:0.2s;
-}
-
-.dl-btn:hover{
-  background:#1122dd;
-  transform:translateY(-2px);
+.video-wrapper iframe{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  border:none;
 }
 
 footer{
@@ -132,20 +127,9 @@ footer{
 
   <div class="card">
     <h2>🎥 Premium Course Video 1</h2>
-    <video controls>
-      <source src="My course.mp4" type="video/mp4">
-    </video>
-    <p style="color:rgba(255,255,255,0.7); margin-top:10px;">Download this video to watch offline.</p>
-    <a href="My course.mp4" download class="dl-btn">Download Video 1</a>
-  </div>
-
-  <div class="card">
-    <h2>🎥 Premium Course Video 2</h2>
-    <video controls>
-      <source src="course-video-2.mp4" type="video/mp4">
-    </video>
-    <p style="color:rgba(255,255,255,0.7); margin-top:10px;">Download this video to watch offline.</p>
-    <a href="course-video-2.mp4" download class="dl-btn">Download Video 2</a>
+    <div class="video-wrapper">
+      <iframe src="https://drive.google.com/file/d/1VrJwQ2fKyAJbqaUoC7Go76enjJkVtAfq/preview" allow="autoplay" allowfullscreen></iframe>
+    </div>
   </div>
 
 </div>

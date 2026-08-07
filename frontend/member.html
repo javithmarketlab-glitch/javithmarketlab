@@ -96,6 +96,39 @@ header{
   border:none;
 }
 
+.telegram-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:15px;
+}
+
+.telegram-text h2{
+  margin-bottom:8px;
+}
+
+.telegram-text p{
+  color:rgba(255,255,255,0.7);
+}
+
+.telegram-btn{
+  display:inline-block;
+  padding:14px 28px;
+  background:#229ED9;
+  color:white;
+  text-decoration:none;
+  border-radius:10px;
+  font-weight:bold;
+  transition:0.2s;
+  white-space:nowrap;
+}
+
+.telegram-btn:hover{
+  background:#1c85b8;
+  transform:translateY(-2px);
+}
+
 footer{
   text-align:center;
   padding:25px;
@@ -108,6 +141,8 @@ footer{
   header{ flex-direction:column; gap:15px; }
   .hero h1{ font-size:28px; }
   .logout-btn{ width:100%; }
+  .telegram-card{ flex-direction:column; align-items:flex-start; }
+  .telegram-btn{ width:100%; text-align:center; }
 }
 </style>
 </head>
@@ -130,6 +165,14 @@ footer{
     <div class="video-wrapper">
       <iframe src="https://drive.google.com/file/d/1VrJwQ2fKyAJbqaUoC7Go76enjJkVtAfq/preview" allow="autoplay" allowfullscreen></iframe>
     </div>
+  </div>
+
+  <div class="card telegram-card">
+    <div class="telegram-text">
+      <h2>📢 Join Our Telegram Channel</h2>
+      <p>Get exclusive updates, signals, and community support.</p>
+    </div>
+    <a href="https://t.me/+RRhBmY2sl0U2ZWQ1" target="_blank" class="telegram-btn">Join Telegram</a>
   </div>
 
 </div>

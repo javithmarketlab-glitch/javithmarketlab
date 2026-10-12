@@ -8,8 +8,6 @@ Cashfree.XEnvironment  = CFEnvironment.PRODUCTION;
 Cashfree.XApiVersion   = "2023-08-01";
 
 console.log("SERVER LOADED 🚀");
-const db = require('./db'); // unga path-ku yetha madhiri
-
 
 console.log("CASHFREE APP ID:", process.env.CASHFREE_APP_ID);
 
@@ -26,7 +24,6 @@ db.query('SELECT 1', (err) => {
   if (err) console.error('MySQL failed:', err.message);
   else console.log('MySQL Connected ✅');
 });
-
 
 const app = express();
 
